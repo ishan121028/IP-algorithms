@@ -126,6 +126,3 @@ ENV/
 **/data/*
 *.pt
 *.plk
-*.pth
-!*/carn.pth
-!*.carn_m.pth
