@@ -80,7 +80,7 @@ def main(cfg):
                 new_state_dict[name] = v
             net.load_state_dict(new_state_dict)
 
-            device = torch.device("cuda")
+            device = torch.device("cpu")
             net = net.to(device)
 
             lr = Image.open("./carn/sample.jpg")

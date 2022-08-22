@@ -25,6 +25,9 @@ class Solver():
             self.loss_fn = nn.L1Loss()
         elif cfg.loss_fn in ["SmoothL1"]:
             self.loss_fn = nn.SmoothL1Loss()
+        elif cfg.loss_fn in ["Perceptual"]:
+            self.loss_fn = None
+            raise Exception("Not implemented")
 
         self.optim = optim.Adam(
             filter(lambda p: p.requires_grad, self.refiner.parameters()), 
