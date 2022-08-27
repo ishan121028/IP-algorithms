@@ -126,3 +126,5 @@ ENV/
 **/data/*
 *.pt
 *.plk
+
+*.jpg

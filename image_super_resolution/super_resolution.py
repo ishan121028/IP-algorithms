@@ -57,13 +57,14 @@ if __name__ == "__main__":
     parser.add_argument('--light_version', type=bool, default=False)
 
     parser.add_argument("--model", type=str, default="carn")
-    parser.add_argument("--ckpt_path", type=str, default="./image_super_resolution/CARN-pytorch/carn/model/")
+    print(os.path.dirname(os.path.abspath(__file__)))
+    parser.add_argument("--ckpt_path", type=str, default=f"{os.path.dirname(__file__)}/../image_super_resolution/CARN-pytorch/carn/model/")
     parser.add_argument("--group", type=int, default=1)
     parser.add_argument("--cuda", action="store_true")
     parser.add_argument("--scale", type=int, default=4)
     parser.add_argument("--shave", type=int, default=20)
     args = parser.parse_args()
-    
+
     args.ckpt_path(os.path.join(args.ckpt_path, f"{args.model}.pth"))
 
     img = Image.open('sample.jpg')

@@ -85,6 +85,7 @@ if __name__ == "__main__":
         frame = cv2.imread('sample.png')
         height, width, _ = frame.shape
         segmented_image, SP_labels = get_segmented_image(frame)
+        cv2.imwrite("segmented_output.png", segmented_image)
         cv2.imshow("Segmented Image", segmented_image)
         cv2.setMouseCallback('Segmented Image', mouse_click_image)
         cv2.waitKey(0)

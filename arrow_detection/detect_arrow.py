@@ -370,7 +370,7 @@ if __name__ == '__main__':
                 print("Not found")
                 num2 += 1
                 print("Not found in :", num2)
-            
+
     
     #Uncomment what you need
     if args.webcam:
