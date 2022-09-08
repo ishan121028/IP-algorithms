@@ -1,11 +1,39 @@
 import argparse
 import cv2
 import numpy as np
+import os
 
 import numpy as np
 import math
 import cv2
-import image_super_resolution.super_resolution
+import importlib
+import json
+import torch
+from collections import OrderedDict
+import torchvision.transforms as transforms
+import PIL.Image as Image
+import sys
+sys.path.append("./")
+print(sys.path)
+
+from image_super_resolution.CARN_pytorch.carn.infer import infer
+
+class Dict2Class(object):
+    def __init__(self, my_dict):
+        for key in my_dict:
+            setattr(self, key, my_dict[key])
+
+cfg = {
+    "group": 1,
+    "ckpt_path": "./image_super_resolution/CARN_pytorch/checkpoint/carn.pth",
+    "model": "carn",
+    "scale": 4,
+    "shave": 20,
+}
+cfg = Dict2Class(cfg)
+
+module = importlib.import_module("image_super_resolution.CARN_pytorch.carn.model.{}".format(cfg.model))
+
 
 def gen_sp_slic(I, region_size_=20, algo=cv2.ximgproc.SLICO):
     # Superpixel Generation ::  Slic superpixels compared to state-of-the-art superpixel methods
@@ -58,8 +86,13 @@ def mouse_click_image(event, x, y, flags, param):
                     min_y = min(min_y, y1)
                     max_y = max(max_y, y1)
         cropped = frame[min_y:max_y, min_x:max_x, :]
+
+        tensor_cropped = torch.from_numpy(cropped)
+        super_reolution_image = image_super_resolution(tensor_cropped)
         resized = cv2.resize(cropped, (cropped.shape[1]*scale, cropped.shape[0]*scale), cv2.INTER_CUBIC)
-        cv2.imshow(f"Segmented Image({lbl})", resized)
+        resized = resized.astype('float32')
+        stacked = np.hstack([resized/255, super_reolution_image])
+        cv2.imshow(f"Segmented Image({lbl})", stacked)
         cv2.setMouseCallback(f'Segmented Image({lbl})', mouse_click_segmented, lbl)
 
 def get_contour_image(image):
@@ -70,19 +103,44 @@ def get_contour_image(image):
     return cv2.drawContours(image, contours, -1, (0,255,0), 3)
 
 
+def image_super_resolution(img):
+
+    net = module.Net(multi_scale=True,
+                     group=cfg.group)
+
+    state_dict = torch.load(cfg.ckpt_path)
+    new_state_dict = OrderedDict()
+    for k, v in state_dict.items():
+        name = k
+        new_state_dict[name] = v
+    net.load_state_dict(new_state_dict)
+
+    device = torch.device("cpu")
+    net = net.to(device)
+
+    lr = Image.fromarray(np.uint8(img))
+    lr = lr.convert("RGB")
+
+    transform = transforms.Compose([
+        transforms.ToTensor()
+    ])
+
+    return infer(net, device, transform(lr), cfg, return_img=True)
+
 if __name__ == "__main__":
+
+
     parser = argparse.ArgumentParser(description="Segmentation")
     parser.add_argument('--webcam', type=bool, default=False)
-    parser.add_argument('--test_image', type=bool, default=True)
+    parser.add_argument('--test_image', type=str, default="./rock_segmentation/sample.png")
     parser.add_argument('--segment', type=bool, default=True)
     parser.add_argument('--classify', type=bool, default=True)
-    parser.add_argument('--test_envs', type=int, nargs='+', default=[0])
     args = parser.parse_args()
 
     height, width = None, None
 
-    if args.test_image:
-        frame = cv2.imread('sample.png')
+    if args.test_image is not None:
+        frame = cv2.imread(args.test_image)
         height, width, _ = frame.shape
         segmented_image, SP_labels = get_segmented_image(frame)
         cv2.imwrite("segmented_output.png", segmented_image)

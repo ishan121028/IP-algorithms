@@ -1,5 +1,7 @@
 import torch
 import torch.nn as nn
+import sys
+sys.path.append("./image_super_resolution/CARN_pytorch/carn")
 import model.ops as ops
 
 class Block(nn.Module):

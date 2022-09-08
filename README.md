@@ -5,4 +5,5 @@ Following are the modules in the repo:
 ## Denoising 
 ## Rock Segmentation
 ## Video Stabilization
+## Image Super Resolution
 

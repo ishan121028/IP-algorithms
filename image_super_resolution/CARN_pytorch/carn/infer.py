@@ -6,9 +6,6 @@ import argparse
 import numpy as np
 from collections import OrderedDict
 import torch
-import torch.nn as nn
-from torch.autograd import Variable
-from dataset import TestDataset
 import torchvision
 import torchvision.transforms as transforms
 from torch.profiler import profile, record_function, ProfilerActivity
@@ -35,7 +32,7 @@ def save_image(tensor, filename):
     im.save(filename)
 
 
-def infer(net, device, image, cfg):
+def infer(net, device, image, cfg, return_img=False):
     lr = image
 
     t1 = time.time()
@@ -43,6 +40,9 @@ def infer(net, device, image, cfg):
     sr = net(lr, cfg.scale).detach().squeeze(0)
     lr = lr.squeeze(0)
     t2 = time.time()
+
+    if return_img:
+        return sr.permute([1, 2, 0]).numpy()
     
     model_name = cfg.ckpt_path.split(".")[0].split("/")[-1]
     sr_dir = os.path.join(cfg.sample_dir,
